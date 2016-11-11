@@ -35,27 +35,7 @@ public class MainActivity extends AppCompatActivity {
             conn.connect();
 
             InputStream stream = conn.getInputStream();
-            String line;
-            try {
 
-                br = new BufferedReader(new InputStreamReader(is));
-                while ((line = stream.readzz()) != null) {
-                    sb.append(line);
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (br != null) {
-                    try {
-                        br.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            return sb.toString();
 
         } catch (Exception e) {
             e.printStackTrace();
