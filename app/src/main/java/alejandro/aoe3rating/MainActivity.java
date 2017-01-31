@@ -1,5 +1,6 @@
 package alejandro.aoe3rating;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
@@ -16,6 +17,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+
+import static alejandro.aoe3rating.Conexiones.getHtmlDocument;
+import static alejandro.aoe3rating.Conexiones.getStatusConnectionCode;
 
 public class MainActivity extends AppCompatActivity {
     private TextView texto2;
@@ -36,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
         texto4 = (TextView)findViewById(R.id.textView4);
         texto_estado = (TextView)findViewById(R.id.textView9);
         caja_nombre = (EditText)findViewById(R.id.editText);
-        texto_nivel = (TextView)findViewById(R.id.textView11);
         cambiarMensaje(new View(this));
     }
     private Handler puente = new Handler() {
@@ -58,39 +61,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
-    private Handler puente2 = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            String resultado = (String) msg.obj;
-            if (resultado.equals("No")) {
-                texto_nivel.setText("Nombre Incorrecto");
-            }else {
-                switch (Integer.parseInt(resultado)) {
-                    case 10:
-                    case 11:
-                    case 12:
-                    case 13:
-                        texto_nivel.setText((String) msg.obj + " - Cabo");
-                        break;
-                    case 14:
-                    case 15:
-                    case 16:
-                        texto_nivel.setText((String) msg.obj + " - Sargento");
-                        break;
-                    case 17:
-                    case 18:
-                    case 19:
-                        texto_nivel.setText((String) msg.obj + " - Sargento Primero");
-                        break;
-                    default:
-                        texto_nivel.setText((String) msg.obj);
-                        break;
 
-                }
-            }
 
-        }
-    };
     public void cambiarMensaje(View v) {
         new Thread(new Runnable() {
             public void run() {
@@ -122,63 +94,9 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
     public void nivelJugador(View v) {
-        new Thread(new Runnable() {
-            public void run() {
-                if (caja_nombre.getText().equals("") || caja_nombre.length() < 2 ) {
-                    Message msg = new Message();
-                    msg.obj = "No";
-                    puente2.sendMessage(msg);
-                } else {
-                    String url2 = "http://www.agecommunity.com/query/query.aspx?name=" + caja_nombre.getText() + "&md=user";
-                    if (getStatusConnectionCode(url2) == 200) {
-                        //System.out.println("Comprobando entradas de: "+url2);
-                        Document document = getHtmlDocument(url2);
-                        Elements entradas = document.select("s");
-                        String titulo = "";
-                        for (Element elem : entradas) {
-                            //System.out.println(elem);
-                            titulo = elem.getElementsByTag("skillLevel").text();
-                            if (titulo.contains("rankLabel")) break;
-                        }
-
-                        //System.out.println(titulo);
-                        Message msg = new Message();
-                        if (titulo.isEmpty() || titulo.equals("")){
-                            msg.obj = "No";
-                        }else{
-                            msg.obj = titulo;
-                        }
-                        puente2.sendMessage(msg);
-
-                    } else {
-                        System.out.println("Error");
-                    }
-                }
-            }
-        }).start();
+        Intent intent = new Intent(v.getContext(), MainActivity2.class);
+        intent.putExtra("jugador", caja_nombre.getText().toString());
+        startActivityForResult(intent, 0);
     }
-    public static int getStatusConnectionCode(String url) {
 
-        Connection.Response response = null;
-
-        try {
-            response = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(100000).ignoreHttpErrors(true).execute();
-        } catch (IOException ex) {
-            System.out.println("Excepción al obtener el Status Code: " + ex.getMessage());
-        }
-        return response.statusCode();
-    }
-    public static Document getHtmlDocument(String url) {
-
-        Document doc = null;
-
-        try {
-            doc = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(100000).get();
-        } catch (IOException ex) {
-            System.out.println("Excepción al obtener el HTML de la página" + ex.getMessage());
-        }
-
-        return doc;
-
-    }
 }
